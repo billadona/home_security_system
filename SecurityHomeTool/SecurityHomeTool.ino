@@ -54,8 +54,6 @@ void loop() {
     {
       Serial.println(knockTimes[ind]);
     }    
-    Serial.print("this is the last input ");
-    Serial.println(knockTimes[i-1]);
   }
   else
   {
@@ -66,8 +64,11 @@ void loop() {
     {
       Serial.println(knockAttempt[ind]);
     }
-    Serial.println(doesItMatch(knockTimes, knockAttempt, i));
-    Serial.println("unlock");
+    Serial.println();
+    if(doesItMatch(knockTimes, knockAttempt, i))
+    {
+      Serial.println("Unlock!~");
+    }
   }
 }
 
@@ -122,18 +123,27 @@ void recordPattern(unsigned long* arr, unsigned int& i)
 
 bool doesItMatch(const unsigned long* arr1, const unsigned long* arr2, const unsigned int i)
 {
-  Serial.print("i is ");
-  Serial.println(i);
-  if(i != j){i, j = 0; return false;}
+  if(i != j)
+  {
+    i, j = 0; 
+    Serial.println("false: i != j");
+    return false;
+  }
+  Serial.println();
   for(int ind = 0; ind < i; ++ind)
   {
-    if(arr1[0] - arr2[0] > 300 || arr1[0] - arr2[0] < -300)
+    if(arr1[ind] - arr2[ind] < 300 || arr1[ind] - arr2[ind] > -300)
     {
-      Serial.println(arr1[0] - arr2[0]);
+      Serial.println(arr1[ind] - arr2[ind]);
       Serial.println(ind);
     }
-    else{return false;}
+    else
+    {
+      Serial.println("false: broke threshold");
+      return false;
+    }
   }
+  Serial.println("true");
   return true;
 }
 
