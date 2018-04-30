@@ -31,13 +31,12 @@ const int threshold = 50;  // threshold value to decide when the detected sound 
 // these variables will change:
 int sensorReading = 0;      // variable to store the value read from the sensor pin
 int ledState = LOW;         // variable used to store the last LED status, to toggle the light
-int counter = 0;
-unsigned long startTime = 0.0;
-unsigned long currentTime = 0.0;
 unsigned long knockTimes[10];
 unsigned long knockAttempt[10];
 unsigned int i = 0;
-bool secondKnock = true;
+unsigned int j = 0;
+bool patternRecorded = false;
+
 
 void setup() {
   pinMode(A0, INPUT);
@@ -50,84 +49,41 @@ void loop() {
   {
     // record initial knock password
     recordPattern(knockTimes, i);
-    Serial.println("i = " + i);
+    Serial.println("Knock pattern stored");
+    for(int ind = 0; ind < i; ind++)
+    {
+      Serial.println(knockTimes[ind]);
+    }    
+    Serial.print("this is the last input ");
+    Serial.println(knockTimes[i-1]);
   }
   else
   {
     // listen for knock pattern to unlock
-//    while(!determinePattern())
-//    {
-//      
-//    }
+    Serial.println("listening");
+    recordPattern(knockAttempt, j);
+    for(int ind = 0; ind < j; ++ind)
+    {
+      Serial.println(knockAttempt[ind]);
+    }
+    Serial.println(doesItMatch(knockTimes, knockAttempt, i));
+    Serial.println("unlock");
   }
-  
-//    sensorReading = analogRead(knockSensor);
-//    if((millis() - startTime) > 5000)
-//    {
-//      Serial.println("Knock pattern stored");
-//      // listen for the knock pattern
-//      for(int ind = 0; ind < i; ++ind)
-//      {
-//        Serial.println(knockTimes[ind]);
-//      }
-//    }
-//  
-//    // if the sensor reading is greater than the threshold:
-//    if (sensorReading >= threshold) 
-//    {
-//      if(secondKnock == true && i == 0)                  // listen for very first knock
-//      {
-//        startTime = millis();                            // start timer
-//        Serial.print("Knock number " + i);
-//        secondKnock = false;                             // set the boolean
-//        Serial.println(analogRead(knockSensor));
-//      }
-//      else if(secondKnock == true && i > 0)
-//      {
-//        currentTime = millis();
-//        knockTimes[i] = currentTime - startTime;
-//        ++i;
-//        Serial.print("Knock number " + i);
-//        Serial.print(i); 
-//        Serial.print(" knock time 1 = ");
-//        Serial.println(knockTimes[i]);     
-//        secondKnock = false;
-//        Serial.println(analogRead(knockSensor));
-//      }
-//      else                                               // listen for second knock
-//      {
-//        currentTime = millis();                          // get current time
-//        knockTimes[i] = currentTime - startTime;                // store time in between knocks
-//        ++i;
-//        startTime, currentTime = 0.0;
-//        startTime = millis();                            // restart the time for next knock
-//        Serial.print("Knock number ");
-//        Serial.println(i);
-//        Serial.print(" knock time 2 = ");
-//        Serial.println(knockTimes[i]);          
-//        secondKnock = true;
-//        Serial.println(analogRead(knockSensor));
-//      }
-//    }      
-  delay(100);  // delay to avoid overloading the serial port buffer
 }
 
 void recordPattern(unsigned long* arr, unsigned int& i) 
 {
+  unsigned long startTime = millis();
+  unsigned long currentTime = 0.0;
+  bool secondKnock = true;
   while(true)
   {
     sensorReading = analogRead(knockSensor);
     if((millis() - startTime) > 5000)
     {
-      Serial.println("Knock pattern stored");
-      // listen for the knock pattern
-      for(int ind = 0; ind < i; ++ind)
-      {
-        Serial.println(knockTimes[ind]);
-      }
+      Serial.println(millis() - startTime);
       break;
     }
-  
     // if the sensor reading is greater than the threshold:
     if (sensorReading >= threshold) 
     {
@@ -141,7 +97,7 @@ void recordPattern(unsigned long* arr, unsigned int& i)
       else if(secondKnock == true && i > 0)
       {
         currentTime = millis();
-        knockTimes[i] = currentTime - startTime;
+        arr[i] = currentTime - startTime;
         ++i;
         Serial.println(i);    
         secondKnock = false;
@@ -150,7 +106,7 @@ void recordPattern(unsigned long* arr, unsigned int& i)
       else                                               // listen for second knock
       {
         currentTime = millis();                          // get current time
-        knockTimes[i] = currentTime - startTime;                // store time in between knocks
+        arr[i] = currentTime - startTime;                // store time in between knocks
         ++i;
         startTime, currentTime = 0.0;
         startTime = millis();                            // restart the time for next knock
@@ -158,15 +114,27 @@ void recordPattern(unsigned long* arr, unsigned int& i)
         secondKnock = true;
         Serial.println(analogRead(knockSensor));
       }
-      delay(100);
     } 
-    sensorReading = 0;   
+    sensorReading = 0; 
+    delay(112);  
   }
 }
 
-//boolean determinePattern()
-//{
-//  recordPattern(knockAttempt);
-//  return true;
-//}
+bool doesItMatch(const unsigned long* arr1, const unsigned long* arr2, const unsigned int i)
+{
+  Serial.print("i is ");
+  Serial.println(i);
+  if(i != j){i, j = 0; return false;}
+  for(int ind = 0; ind < i; ++ind)
+  {
+    if(arr1[0] - arr2[0] > 300 || arr1[0] - arr2[0] < -300)
+    {
+      Serial.println(arr1[0] - arr2[0]);
+      Serial.println(ind);
+    }
+    else{return false;}
+  }
+  return true;
+}
+
 
