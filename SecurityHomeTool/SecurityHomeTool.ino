@@ -31,8 +31,8 @@ const int threshold = 50;  // threshold value to decide when the detected sound 
 // these variables will change:
 int sensorReading = 0;      // variable to store the value read from the sensor pin
 int ledState = LOW;         // variable used to store the last LED status, to toggle the light
-unsigned long knockTimes[10];
-unsigned long knockAttempt[10];
+long knockTimes[10];
+long knockAttempt[10];
 unsigned int i = 0;
 unsigned int j = 0;
 bool patternRecorded = false;
@@ -69,10 +69,18 @@ void loop() {
     {
       Serial.println("Unlock!~");
     }
+    else
+    {
+      for(int ind = 0; ind < j; ++j)
+      {
+        knockAttempt[ind] = 0.0;
+      }
+      j = 0;
+    }
   }
 }
 
-void recordPattern(unsigned long* arr, unsigned int& i) 
+void recordPattern(long* arr, unsigned int& i) 
 {
   unsigned long startTime = millis();
   unsigned long currentTime = 0.0;
@@ -82,7 +90,6 @@ void recordPattern(unsigned long* arr, unsigned int& i)
     sensorReading = analogRead(knockSensor);
     if((millis() - startTime) > 5000)
     {
-      Serial.println(millis() - startTime);
       break;
     }
     // if the sensor reading is greater than the threshold:
@@ -117,11 +124,11 @@ void recordPattern(unsigned long* arr, unsigned int& i)
       }
     } 
     sensorReading = 0; 
-    delay(112);  
+    delay(95);  
   }
 }
 
-bool doesItMatch(const unsigned long* arr1, const unsigned long* arr2, const unsigned int i)
+bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
 {
   if(i != j)
   {
@@ -132,10 +139,10 @@ bool doesItMatch(const unsigned long* arr1, const unsigned long* arr2, const uns
   Serial.println();
   for(int ind = 0; ind < i; ++ind)
   {
-    if(arr1[ind] - arr2[ind] < 300 || arr1[ind] - arr2[ind] > -300)
+    Serial.println("It gets here");
+    if(arr1[ind] - arr2[ind] < 400 || arr1[ind] - arr2[ind] > -400)
     {
       Serial.println(arr1[ind] - arr2[ind]);
-      Serial.println(ind);
     }
     else
     {
@@ -146,5 +153,3 @@ bool doesItMatch(const unsigned long* arr1, const unsigned long* arr2, const uns
   Serial.println("true");
   return true;
 }
-
-
