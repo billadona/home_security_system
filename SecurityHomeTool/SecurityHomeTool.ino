@@ -130,6 +130,7 @@ void recordPattern(long* arr, unsigned int& i)
 
 bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
 {
+  long num = 0.0;
   if(i != j)
   {
     i, j = 0; 
@@ -139,8 +140,13 @@ bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
   Serial.println();
   for(int ind = 0; ind < i; ++ind)
   {
+    num = arr1[ind] - arr2[ind];
     Serial.println("It gets here");
-    if(arr1[ind] - arr2[ind] < 400 || arr1[ind] - arr2[ind] > -400)
+    if(num > 0 && num < 400)
+    {
+      Serial.println(arr1[ind] - arr2[ind]);
+    }
+    else if(num < 0 && num > -400)
     {
       Serial.println(arr1[ind] - arr2[ind]);
     }
