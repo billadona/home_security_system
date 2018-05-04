@@ -27,6 +27,11 @@ const int ledPin = 13;      // LED connected to digital pin 13
 const int knockSensor = A0; // the piezo is connected to analog pin 0
 const int threshold = 50;  // threshold value to decide when the detected sound is a knock or not
 
+// RGB LED pins
+const int redPin = 11;
+const int greenPin = 10;
+const int bluePin = 9;
+
 
 // these variables will change:
 int sensorReading = 0;      // variable to store the value read from the sensor pin
@@ -68,9 +73,19 @@ void loop() {
     if(doesItMatch(knockTimes, knockAttempt, i))
     {
       Serial.println("Unlock!~");
+      setColourRgb(0,255,0);
+      delay(1000);
+      setColourRgb(0,0,0);
     }
     else
     {
+      setColourRgb(255,0,0);
+      delay(100);
+      setColourRgb(0,0,0);
+      delay(100);
+      setColourRgb(255,0,0);
+      delay(100);
+      setColourRgb(0,0,0);
       for(int ind = 0; ind < j; ++j)
       {
         knockAttempt[ind] = 0.0;
@@ -122,31 +137,29 @@ void recordPattern(long* arr, unsigned int& i)
         secondKnock = true;
         Serial.println(analogRead(knockSensor));
       }
+      setColourRgb(255,165,0);
+      delay(50);
+      setColourRgb(0,0,0);
     } 
     sensorReading = 0; 
-    delay(95);  
+    delay(45);  
   }
 }
 
 bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
 {
-  long num = 0.0;
   if(i != j)
   {
     i, j = 0; 
     Serial.println("false: i != j");
+    
     return false;
   }
   Serial.println();
   for(int ind = 0; ind < i; ++ind)
   {
-    num = arr1[ind] - arr2[ind];
     Serial.println("It gets here");
-    if(num > 0 && num < 400)
-    {
-      Serial.println(arr1[ind] - arr2[ind]);
-    }
-    else if(num < 0 && num > -400)
+    if(arr1[ind] - arr2[ind] < 400 || arr1[ind] - arr2[ind] > -400)
     {
       Serial.println(arr1[ind] - arr2[ind]);
     }
@@ -159,3 +172,11 @@ bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
   Serial.println("true");
   return true;
 }
+
+void setColourRgb(unsigned int red, unsigned int green, unsigned int blue) {
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+ }
+
+
