@@ -22,10 +22,16 @@
 */
 
 
+#include <Servo.h>
+
+Servo servo;
+
 // these constants won't change:
 const int ledPin = 13;      // LED connected to digital pin 13
 const int knockSensor = A0; // the piezo is connected to analog pin 0
-const int threshold = 50;  // threshold value to decide when the detected sound is a knock or not
+const int threshold = 100;  // threshold value to decide when the detected sound is a knock or not
+const int lockButtonPin = 2;
+const int servoPin = 4;
 
 // RGB LED pins
 const int redPin = 11;
@@ -41,11 +47,15 @@ long knockAttempt[10];
 unsigned int i = 0;
 unsigned int j = 0;
 bool patternRecorded = false;
+int lockButtonState = 0;
+int angle = 0;
 
 
 void setup() {
   pinMode(A0, INPUT);
   pinMode(ledPin, OUTPUT); // declare the ledPin as as OUTPUT
+  pinMode(lockButtonPin, INPUT);
+  servo.attach(servoPin);
   Serial.begin(9600);       // use the serial port
 }
 
@@ -64,6 +74,21 @@ void loop() {
   {
     // listen for knock pattern to unlock
     Serial.println("listening");
+
+    // lock logic
+    Serial.println("Reading lock button state");
+    lockButtonState = digitalRead(lockButtonPin);
+    // when the lock button is pressed, turn the servo to the locked position
+    if (lockButtonState == 1) {
+      Serial.println("Lock Button Pressed");
+      for (angle = 0; angle < 300; ++angle) {
+        servo.write(angle);
+        delay(5);
+      }
+    } 
+
+    lockButtonState = 0;
+    
     recordPattern(knockAttempt, j);
     for(int ind = 0; ind < j; ++ind)
     {
@@ -74,8 +99,20 @@ void loop() {
     {
       Serial.println("Unlock!~");
       setColourRgb(0,255,0);
+
+      // spin the motor to unlock
+      for (angle = 300; angle > 0; --angle) {
+        servo.write(angle);
+        delay(5);
+      }
+    
       delay(1000);
       setColourRgb(0,0,0);
+      for(int ind = 0; ind < j; ++ind)
+      {
+        knockAttempt[ind] = 0.0;
+      }
+      j = 0; 
     }
     else
     {
@@ -103,6 +140,20 @@ void recordPattern(long* arr, unsigned int& i)
   while(true)
   {
     sensorReading = analogRead(knockSensor);
+    
+    // lock logic
+    //Serial.println("Reading lock button state in LONG PART");
+    lockButtonState = digitalRead(lockButtonPin);
+    // when the lock button is pressed, turn the servo to the locked position
+    if (lockButtonState == 1) {
+      Serial.println("Lock Button Pressed in LONG PART");
+      for (angle = 0; angle < 100; ++angle) {
+        servo.write(angle);
+        delay(10);
+      }
+    } 
+    lockButtonState = 0;
+    
     if((millis() - startTime) > 5000)
     {
       break;
@@ -142,8 +193,9 @@ void recordPattern(long* arr, unsigned int& i)
       setColourRgb(0,0,0);
     } 
     sensorReading = 0; 
-    delay(45);  
+    delay(70);  
   }
+  Serial.println("Pattern 1");
 }
 
 bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
@@ -160,11 +212,11 @@ bool doesItMatch(const long* arr1, const long* arr2, const unsigned int i)
   for(int ind = 0; ind < i; ++ind)
   {
     temp = arr1[ind] - arr2[ind];
-    if(temp < 400 && temp > 0)
+    if(temp < 400)
     {
       Serial.println(arr1[ind] - arr2[ind]);
     }
-    else if(temp > -400 && temp < 0)
+    if(temp > -400)
     {
       Serial.println(arr1[ind] - arr2[ind]);
     }
@@ -183,5 +235,4 @@ void setColourRgb(unsigned int red, unsigned int green, unsigned int blue) {
   analogWrite(greenPin, green);
   analogWrite(bluePin, blue);
  }
-
 
